@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Checkbox from "expo-checkbox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     FlatList,
     Image,
+    Keyboard,
     KeyboardAvoidingView,
     SafeAreaView,
     StyleSheet,
@@ -47,17 +49,50 @@ export default function Index() {
             isDone: false,
         },
     ];
-    const [todos, setTodos] = useState<ToDoType[]>(todoData);
+    const [todos, setTodos] = useState<ToDoType[]>([]);
     const [todoText, setTodoText] = useState<string>("");
 
-    const addTodo = () => {
-        const newTodo = {
-            id: todos.length + 1,
-            title: todoText,
-            isDone: false,
+    useEffect(() => {
+        const getTodos = async () => {
+            try {
+                const todos = await AsyncStorage.getItem("my-todo");
+                if (todos) {
+                    setTodos(JSON.parse(todos));
+                } else {
+                    setTodos(todoData);
+                }
+            } catch (e) {
+                console.log(e);
+            }
         };
-        setTodos([...todos, newTodo]);
-        setTodoText("");
+        getTodos();
+    }, []);
+
+    const addTodo = async () => {
+        try {
+            const newTodo = {
+                id: todos.length + 1,
+                title: todoText,
+                isDone: false,
+            };
+
+            setTodos([...todos, newTodo]);
+            await AsyncStorage.setItem("my-todo", JSON.stringify([...todos, newTodo]));
+            setTodoText("");
+            Keyboard.dismiss();
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    const deleteTodo = async (id: number) => {
+        try {
+            const newTodos = todos.filter((todo) => todo.id !== id);
+            setTodos(newTodos);
+            await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     return (
@@ -97,9 +132,14 @@ export default function Index() {
                 />
             </View>
             <FlatList
-                data={todos.reverse()}
+                data={[...todos].reverse()}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => <TodoItem todo={item} />}
+                renderItem={({ item }) => (
+                    <TodoItem
+                        todo={item}
+                        deleteToDo={deleteTodo}
+                    />
+                )}
             />
             <KeyboardAvoidingView
                 style={styles.footer}
@@ -130,7 +170,7 @@ export default function Index() {
     );
 }
 
-const TodoItem = ({ todo }: { todo: ToDoType }) => {
+const TodoItem = ({ todo, deleteToDo }: { todo: ToDoType; deleteToDo: (id: number) => void }) => {
     return (
         <View style={styles.toDoContainer}>
             <View style={styles.toDoInfoContainer}>
@@ -147,7 +187,7 @@ const TodoItem = ({ todo }: { todo: ToDoType }) => {
             </View>
             <TouchableOpacity
                 onPress={() => {
-                    alert("clicked");
+                    deleteToDo(todo.id);
                 }}
             >
                 <Ionicons
