@@ -20,7 +20,6 @@ type ToDoType = {
 };
 
 export default function Index() {
-    const [todos, setTodos] = useState<ToDoType[]>([]);
     const todoData = [
         {
             id: 1,
@@ -48,6 +47,19 @@ export default function Index() {
             isDone: false,
         },
     ];
+    const [todos, setTodos] = useState<ToDoType[]>(todoData);
+    const [todoText, setTodoText] = useState<string>("");
+
+    const addTodo = () => {
+        const newTodo = {
+            id: todos.length + 1,
+            title: todoText,
+            isDone: false,
+        };
+        setTodos([...todos, newTodo]);
+        setTodoText("");
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -85,7 +97,7 @@ export default function Index() {
                 />
             </View>
             <FlatList
-                data={todoData}
+                data={todos.reverse()}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => <TodoItem todo={item} />}
             />
@@ -95,13 +107,16 @@ export default function Index() {
                 keyboardVerticalOffset={10}
             >
                 <TextInput
+                    onChangeText={(text) => setTodoText(text)}
                     placeholder="Add new todo"
                     style={styles.newToDoInput}
+                    value={todoText}
+                    autoCorrect={false}
                 />
                 <TouchableOpacity
                     style={styles.addButton}
                     onPress={() => {
-                        alert("clicked");
+                        addTodo();
                     }}
                 >
                     <Ionicons
