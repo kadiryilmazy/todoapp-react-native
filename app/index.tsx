@@ -1,7 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
-import { FlatList, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Checkbox from "expo-checkbox";
+import { useState } from "react";
+import {
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
+type ToDoType = {
+    id: number;
+    title: string;
+    isDone: boolean;
+};
 
 export default function Index() {
+    const [todos, setTodos] = useState<ToDoType[]>([]);
     const todoData = [
         {
             id: 1,
@@ -68,15 +87,63 @@ export default function Index() {
             <FlatList
                 data={todoData}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <View>
-                        <Text>{item.title}</Text>
-                    </View>
-                )}
+                renderItem={({ item }) => <TodoItem todo={item} />}
             />
+            <KeyboardAvoidingView
+                style={styles.footer}
+                behavior="padding"
+                keyboardVerticalOffset={10}
+            >
+                <TextInput
+                    placeholder="Add new todo"
+                    style={styles.newToDoInput}
+                />
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => {
+                        alert("clicked");
+                    }}
+                >
+                    <Ionicons
+                        name="add"
+                        size={34}
+                        color={"#fff"}
+                    />
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const TodoItem = ({ todo }: { todo: ToDoType }) => {
+    return (
+        <View style={styles.toDoContainer}>
+            <View style={styles.toDoInfoContainer}>
+                <Checkbox
+                    value={todo.isDone}
+                    onValueChange={() => {
+                        alert("clicked");
+                    }}
+                    color={todo.isDone ? "#4630EB" : undefined}
+                />
+                <Text style={[styles.toDoText, { textDecorationLine: todo.isDone ? "line-through" : "none" }]}>
+                    {todo.title}
+                </Text>
+            </View>
+            <TouchableOpacity
+                onPress={() => {
+                    alert("clicked");
+                }}
+            >
+                <Ionicons
+                    name="trash"
+                    size={24}
+                    color={"#8B0000"}
+                />
+            </TouchableOpacity>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -102,5 +169,47 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
+        fontSize: 16,
+        color: "#333",
+    },
+    toDoContainer: {
+        backgroundColor: "#fff",
+        padding: 16,
+        borderRadius: 12,
+        marginVertical: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    toDoInfoContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        flex: 1,
+    },
+    toDoText: {
+        fontSize: 16,
+        color: "#333",
+    },
+    footer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    newToDoInput: {
+        backgroundColor: "#fff",
+        flex: 1,
+        padding: 16,
+        borderRadius: 10,
+        fontSize: 16,
+        color: "#333",
+    },
+    addButton: {
+        backgroundColor: "#4630EB",
+        padding: 8,
+        borderRadius: 10,
+        marginLeft: 20,
+        justifyContent: "center",
+        alignItems: "center",
     },
 });
