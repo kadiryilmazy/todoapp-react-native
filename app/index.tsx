@@ -51,6 +51,8 @@ export default function Index() {
     ];
     const [todos, setTodos] = useState<ToDoType[]>([]);
     const [todoText, setTodoText] = useState<string>("");
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [oldTodos, setOldTodos] = useState<ToDoType[]>([]);
 
     useEffect(() => {
         const getTodos = async () => {
@@ -58,6 +60,7 @@ export default function Index() {
                 const todos = await AsyncStorage.getItem("my-todo");
                 if (todos) {
                     setTodos(JSON.parse(todos));
+                    setOldTodos(JSON.parse(todos));
                 } else {
                     setTodos(todoData);
                 }
@@ -67,6 +70,19 @@ export default function Index() {
         };
         getTodos();
     }, []);
+
+    const onSearch = (query: string) => {
+        if (query == "") {
+            setTodos(oldTodos);
+        } else {
+            const filteredTodos = todos.filter((todo) => todo.title.toLowerCase().includes(query.toLowerCase()));
+            setTodos(filteredTodos);
+        }
+    };
+
+    useEffect(() => {
+        onSearch(searchQuery);
+    }, [searchQuery]);
 
     const addTodo = async () => {
         try {
@@ -80,6 +96,7 @@ export default function Index() {
             await AsyncStorage.setItem("my-todo", JSON.stringify([...todos, newTodo]));
             setTodoText("");
             Keyboard.dismiss();
+            setOldTodos(todos);
         } catch (e) {
             console.log(e);
         }
@@ -89,11 +106,13 @@ export default function Index() {
         try {
             const newTodos = todos.filter((todo) => todo.id !== id);
             setTodos(newTodos);
+            setOldTodos(todos);
             await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
         } catch (e) {
             console.log(e);
         }
     };
+
     const handleDone = async (id: number) => {
         try {
             const newTodos = todos.map((todo) => {
@@ -106,6 +125,7 @@ export default function Index() {
                 return todo;
             });
             setTodos(newTodos);
+            setOldTodos(todos);
             await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
         } catch (e) {
             console.log(e);
@@ -144,6 +164,11 @@ export default function Index() {
                 />
                 <TextInput
                     placeholder="Search"
+                    value={searchQuery}
+                    onChangeText={(text) => {
+                        setSearchQuery(text);
+                    }}
+                    clearButtonMode="always"
                     style={styles.searchInput}
                 />
             </View>
