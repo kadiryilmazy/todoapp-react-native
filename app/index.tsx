@@ -94,7 +94,23 @@ export default function Index() {
             console.log(e);
         }
     };
-
+    const handleDone = async (id: number) => {
+        try {
+            const newTodos = todos.map((todo) => {
+                if (todo.id === id) {
+                    return {
+                        ...todo,
+                        isDone: !todo.isDone,
+                    };
+                }
+                return todo;
+            });
+            setTodos(newTodos);
+            await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
+        } catch (e) {
+            console.log(e);
+        }
+    };
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -138,6 +154,7 @@ export default function Index() {
                     <TodoItem
                         todo={item}
                         deleteToDo={deleteTodo}
+                        handleDone={handleDone}
                     />
                 )}
             />
@@ -170,14 +187,22 @@ export default function Index() {
     );
 }
 
-const TodoItem = ({ todo, deleteToDo }: { todo: ToDoType; deleteToDo: (id: number) => void }) => {
+const TodoItem = ({
+    todo,
+    deleteToDo,
+    handleDone,
+}: {
+    todo: ToDoType;
+    deleteToDo: (id: number) => void;
+    handleDone: (id: number) => void;
+}) => {
     return (
         <View style={styles.toDoContainer}>
             <View style={styles.toDoInfoContainer}>
                 <Checkbox
                     value={todo.isDone}
                     onValueChange={() => {
-                        alert("clicked");
+                        handleDone(todo.id);
                     }}
                     color={todo.isDone ? "#4630EB" : undefined}
                 />
